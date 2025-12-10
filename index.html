@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spot the Design Error — HUD Edition</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Tailwind config override for gradients and glass effect */
+    :root{
+      --glass: rgba(255,255,255,0.04);
+      --card: rgba(255,255,255,0.03);
+    }
+
+    /* small helper for consistent card shadow */
+    .glass-card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow: 0 8px 30px rgba(2,6,23,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    /* dotted guide lines on the poster */
+    .guide-vertical::before, .guide-vertical::after{
+      content: '';
+      position: absolute;
+      top: 20px;
+      bottom: 100px;
+      width: 1px;
+      background-image: linear-gradient(180deg, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 0%);
+      background-size: 1px 10px;
+      opacity: 0.18;
+    }
+    .guide-vertical::before{ left: 32%; }
+    .guide-vertical::after{ right: 32%; }
+
+    /* pill glow */
+    .glow-pill{ 
+      box-shadow: 0 6px 30px rgba(99,102,241,0.25), 0 1px 0 rgba(255,255,255,0.03);
+      transition: all 0.3s ease;
+    } 
+
+    /* gradient buttons */
+    .btn-grad-1{ 
+      background: linear-gradient(90deg,#5ee7df,#4f46e5); 
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+    .btn-grad-2{ 
+      background: linear-gradient(90deg,#4f46e5,#ef476f); 
+      box-shadow: 0 4px 15px rgba(239, 71, 111, 0.3);
+    }
+    .btn-grad-3{ 
+      background: linear-gradient(90deg,#60a5fa,#7c3aed); 
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+    }
+
+    /* subtle rounded poster shadow */
+    .poster-wrap{ 
+      box-shadow: 0 40px 80px rgba(3,7,18,0.7);
+      transition: all 0.3s ease;
+    }
+
+    /* poster hover effect */
+    .poster-wrap:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 50px 100px rgba(3,7,18,0.8);
+    }
+
+    /* clickable area overlay */
+    .clickable-area {
+      position: absolute;
+      /* border: 2px dashed rgba(255, 215, 0, 0.5); */
+      border-radius: 8px;
+      /* background-color: rgba(255, 215, 0, 0.1); */
+      z-index: 10;
+      cursor: crosshair;
+      transition: all 0.3s ease;
+    }
+
+    .clickable-area:hover {
+      /* background-color: rgba(255, 215, 0, 0.2); */
+      /* border-color: rgba(255, 215, 0, 0.8); */
+    }
+
+    /* error reveal overlay */
+    .error-reveal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+
+    .reveal-content {
+      background: linear-gradient(180deg, rgba(30, 30, 40, 0.95), rgba(15, 15, 25, 0.98));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    /* progress indicator */
+    .progress-step {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .progress-step.active {
+      background-color: #4f46e5;
+      transform: scale(1.3);
+      box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
+    }
+
+    .progress-step.completed {
+      background-color: #10b981;
+    }
+
+    /* typo error styling */
+    .typo-error {
+      position: relative;
+    }
+
+    .typo-error::after {
+      content: "DESGIN";
+      /* Typo: seharusnya "DESIGN" */
+    }
+
+    /* game complete overlay */
+    .game-complete {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    /* click feedback animation */
+    @keyframes clickFeedback {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+
+    .click-feedback {
+      animation: clickFeedback 0.2s ease;
+    }
+
+    /* hint highlight effect */
+    @keyframes highlightPulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+    }
+
+    .highlight-active {
+      animation: highlightPulse 2s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-tr from-[#08112b] via-[#071334] to-[#061124] text-white font-sans overflow-x-hidden">
+  <!-- Game Complete Overlay -->
+  <div id="gameComplete" class="game-complete">
+    <div class="glass-card p-10 rounded-3xl max-w-lg w-11/12 text-center">
+      <div class="text-5xl mb-6">🏆</div>
+      <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-[#5ee7df] to-[#4f46e5] bg-clip-text text-transparent">
+        Game Complete!
+      </h2>
+      <p class="text-slate-300 mb-8">Selamat! Anda telah menemukan semua kesalahan desain.</p>
+      
+      <div class="grid grid-cols-3 gap-6 mb-10">
+        <div>
+          <div class="text-2xl font-bold text-emerald-400" id="finalScore">0</div>
+          <div class="text-sm text-slate-400">Skor Akhir</div>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-amber-400" id="finalTime">00:00</div>
+          <div class="text-sm text-slate-400">Waktu Tersisa</div>
+        </div>
+        <div>
+          <div class="text-2xl font-bold text-cyan-400" id="finalAccuracy">100%</div>
+          <div class="text-sm text-slate-400">Akurasi</div>
+        </div>
+      </div>
+      
+      <button id="playAgainBtn" class="px-8 py-4 rounded-full bg-gradient-to-r from-[#4f46e5] to-[#ef476f] font-bold text-lg w-full">
+        Main Lagi
+      </button>
+    </div>
+  </div>
+
+  <div class="max-w-[1400px] mx-auto px-6 py-1 relative min-h-screen">
+    <!-- Left status card -->
+    <div class="absolute left-6 top-10 w-72 glass-card p-5 rounded-2xl">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#ff7a7a] to-[#ffb86b] flex items-center justify-center text-black font-bold text-xl">🔍</div>
+        <div>
+          <div class="font-bold text-lg">Spot the Design Error</div>
+          <div class="text-xs text-slate-300" id="gameMode">Mode Normal</div>
+        </div>
+      </div>
+      
+      <div class="space-y-4">
+        <div>
+          <div class="text-slate-300/80 text-sm mb-1">Progress</div>
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-lg font-semibold" id="currentPoster">1</div>
+            <div class="text-slate-400">/</div>
+            <div class="text-slate-400" id="totalPosters">5</div>
+          </div>
+          <div class="flex gap-2">
+            <div class="progress-step active" data-poster="1"></div>
+            <div class="progress-step" data-poster="2"></div>
+            <div class="progress-step" data-poster="3"></div>
+            <div class="progress-step" data-poster="4"></div>
+            <div class="progress-step" data-poster="5"></div>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2">
+          <div class="text-slate-300/80">Poster Selesai</div>
+          <div class="text-right font-semibold text-emerald-400" id="postersCompleted">0</div>
+        </div>
+        
+        <div class="grid grid-cols-2">
+          <div class="text-slate-300/80">Skor</div>
+          <div class="text-right font-bold text-2xl text-orange-400" id="score">0</div>
+        </div>
+        
+        <div class="grid grid-cols-2">
+          <div class="text-slate-300/80">Hint Tersisa</div>
+          <div class="text-right font-semibold text-cyan-400" id="hintsLeft">3</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right top control card -->
+    <div class="absolute right-6 top-10 w-72 glass-card p-4 rounded-2xl">
+      <div class="flex gap-3 items-center mb-4">
+        <button id="modeNormal" class="px-4 py-2 rounded-full text-sm bg-gradient-to-r from-[#6ee7b7] to-[#60a5fa] text-black font-medium flex-1">
+          <i class="fas fa-walking mr-2"></i>Normal
+        </button>
+        <button id="modeFast" class="px-4 py-2 rounded-full text-sm bg-transparent border border-white/10 text-slate-300 flex-1">
+          <i class="fas fa-running mr-2"></i>Cepat
+        </button>
+      </div>
+      
+      <div class="text-center">
+        <div class="text-xs text-slate-400 mb-1">SISA WAKTU</div>
+        <div id="timer" class="font-mono font-bold text-3xl text-emerald-400">02:00</div>
+      </div>
+      
+      <div class="mt-4 text-center text-sm text-slate-400">
+        Klik area dengan kesalahan pada poster
+      </div>
+    </div>
+
+    <!-- Center poster column -->
+    <div class="flex flex-col items-center justify-center ">
+      <div class="w-[600px] poster-wrap rounded-2xl overflow-hidden bg-black relative">
+        <!-- Poster content -->
+        <div class="relative h-[750px] bg-black cursor-crosshair" id="posterContainer">
+          <!-- Poster 1: Typo Error -->
+          <div id="poster1" class="poster-content absolute inset-0">
+            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #0a192f 0%, #1e3a5f 100%); color: #e2e8f0; font-family: 'Segoe UI', sans-serif;">
+              <div class="text-center mt-12">
+                <h1 class="text-5xl font-bold mb-4 typo-error">DESGIN CONFERENCE 2024</h1>
+                <p class="text-xl text-slate-300">The Future of Digital Creativity</p>
+              </div>
+              
+              <div class="flex-1 flex items-center justify-center">
+                <div class="text-center max-w-lg">
+                  <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
+                    <div class="text-3xl font-bold text-cyan-400 mb-2">NOVEMBER 24-26</div>
+                    <div class="text-lg">Convention Center, Jakarta</div>
+                  </div>
+                  
+                  <div class="space-y-4">
+                    <div class="text-2xl font-semibold">Featuring Top Designers:</div>
+                    <div class="flex justify-center gap-6">
+                      <div class="bg-white/5 p-4 rounded-xl">Sarah Chen</div>
+                      <div class="bg-white/5 p-4 rounded-xl">Alex Rivera</div>
+                      <div class="bg-white/5 p-4 rounded-xl">Maya Patel</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="text-center mb-10">
+                <div class="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-full font-bold text-lg">
+                  Register Now at designconf.com
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Poster 2: Alignment Error -->
+          <div id="poster2" class="poster-content absolute inset-0 hidden">
+            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #2d1b69 0%, #6d28d9 100%); color: white; font-family: 'Arial', sans-serif;">
+              <div class="text-center mt-10">
+                <h1 class="text-4xl font-bold mb-2">TECH INNOVATION SUMMIT</h1>
+                <p class="text-lg text-slate-300">Where Ideas Become Reality</p>
+              </div>
+              
+              <div class="flex-1 flex items-center px-12">
+                <div class="w-full">
+                  <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-white/10 p-6 rounded-xl" style="margin-left: 20px;">
+                      <h3 class="text-xl font-bold mb-2">AI & Machine Learning</h3>
+                      <p class="text-slate-300">Explore the future of artificial intelligence</p>
+                    </div>
+                    
+                    <div class="bg-white/10 p-6 rounded-xl" style="margin-left: 50px; margin-top: 15px;">
+                      <h3 class="text-xl font-bold mb-2">Web3 & Blockchain</h3>
+                      <p class="text-slate-300">Decentralized technologies explained</p>
+                    </div>
+                    
+                    <div class="bg-white/10 p-6 rounded-xl" style="margin-left: 10px;">
+                      <h3 class="text-xl font-bold mb-2">UX/UI Design Trends</h3>
+                      <p class="text-slate-300">Latest design patterns for 2024</p>
+                    </div>
+                    
+                    <div class="bg-white/10 p-6 rounded-xl" style="margin-left: 40px; margin-top: -10px;">
+                      <h3 class="text-xl font-bold mb-2">Sustainable Tech</h3>
+                      <p class="text-slate-300">Green technology solutions</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="text-center mb-12">
+                <div class="inline-block bg-white text-purple-900 px-10 py-3 rounded-full font-bold text-lg">
+                  Get Tickets
+                </div>
+                <p class="mt-4 text-slate-300">March 15-17, 2024 • San Francisco</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Poster 3: Spacing Error -->
+          <div id="poster3" class="poster-content absolute inset-0 hidden">
+            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; font-family: 'Helvetica', sans-serif;">
+              <div class="text-center mt-12">
+                <h1 class="text-5xl font-bold mb-6">SUSTAINABILITY EXPO</h1>
+                <p class="text-xl">Building a Greener Tomorrow</p>
+              </div>
+              
+              <div class="flex-1 flex items-center justify-center px-16">
+                <div class="w-full space-y-8">
+                  <div class="bg-white/10 p-5 rounded-lg" style="margin-bottom: 30px;">
+                    <h3 class="text-2xl font-bold">Renewable Energy Solutions</h3>
+                    <p>Solar, wind, and hydro power innovations</p>
+                  </div>
+                  
+                  <div class="bg-white/10 p-5 rounded-lg" style="margin-bottom: 10px;">
+                    <h3 class="text-2xl font-bold">Circular Economy</h3>
+                    <p>Redesigning waste into resources</p>
+                  </div>
+                  
+                  <div class="bg-white/10 p-5 rounded-lg" style="margin-bottom: 40px;">
+                    <h3 class="text-2xl font-bold">Green Transportation</h3>
+                    <p>Electric vehicles and sustainable mobility</p>
+                  </div>
+                  
+                  <div class="bg-white/10 p-5 rounded-lg" style="margin-bottom: 5px;">
+                    <h3 class="text-2xl font-bold">Eco-Friendly Products</h3>
+                    <p>Everyday items with zero waste</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="text-center mb-10">
+                <div class="inline-block bg-white text-teal-900 px-8 py-3 rounded-full font-bold text-lg">
+                  Join the Movement
+                </div>
+                <p class="mt-4">April 5-7, 2024 • Berlin Convention Center</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Poster 4: Contrast Error -->
+          <div id="poster4" class="poster-content absolute inset-0 hidden">
+            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); color: #f8fafc; font-family: 'Georgia', serif;">
+              <div class="text-center mt-16">
+                <h1 class="text-5xl font-bold mb-4 text-slate-100">ART & CULTURE FESTIVAL</h1>
+                <p class="text-xl text-slate-200">Celebrating Creative Expression</p>
+              </div>
+              
+              <div class="flex-1 flex items-center justify-center">
+                <div class="text-center max-w-xl">
+                  <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-8 mb-8">
+                    <div class="text-4xl font-bold text-slate-100 mb-2">AUGUST 10-12</div>
+                    <div class="text-lg text-slate-200">Central Park, New York City</div>
+                  </div>
+                  
+                  <div class="space-y-6">
+                    <div class="text-2xl font-semibold text-slate-100">Featuring:</div>
+                    <div class="space-y-4">
+                      <div class="text-lg text-slate-200">Live Music Performances</div>
+                      <div class="text-lg text-slate-200">Art Installations & Exhibits</div>
+                      <div class="text-lg text-slate-200">Cultural Workshops</div>
+                      <div class="text-lg text-slate-200">Food from Around the World</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="text-center mb-12">
+                <div class="inline-block bg-slate-100 text-slate-800 px-10 py-3 rounded-full font-bold text-lg">
+                  Free Admission
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Poster 5: Font Inconsistency -->
+          <div id="poster5" class="poster-content absolute inset-0 hidden">
+            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%); color: white;">
+              <div class="text-center mt-12">
+                <h1 class="text-5xl font-bold mb-4" style="font-family: 'Comic Sans MS', cursive;">MUSIC FESTIVAL EXTRAVAGANZA</h1>
+                <p class="text-xl" style="font-family: 'Arial', sans-serif;">The Ultimate Sound Experience</p>
+              </div>
+              
+              <div class="flex-1 flex items-center justify-center">
+                <div class="text-center">
+                  <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
+                    <div class="text-4xl font-bold text-yellow-300 mb-2">JULY 20-22</div>
+                    <div class="text-lg">Las Vegas Motor Speedway</div>
+                  </div>
+                  
+                  <div class="space-y-6">
+                    <div class="text-2xl font-bold">Lineup Includes:</div>
+                    <div class="flex justify-center gap-8">
+                      <div class="bg-white/5 p-4 rounded-xl">
+                        <div class="font-bold">The Midnight</div>
+                        <div class="text-sm text-slate-300">Synthwave</div>
+                      </div>
+                      <div class="bg-white/5 p-4 rounded-xl">
+                        <div class="font-bold">Electric Pulse</div>
+                        <div class="text-sm text-slate-300">EDM</div>
+                      </div>
+                      <div class="bg-white/5 p-4 rounded-xl">
+                        <div class="font-bold">Neon Dreams</div>
+                        <div class="text-sm text-slate-300">Pop</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="text-center mb-10">
+                <div class="inline-block bg-gradient-to-r from-yellow-400 to-pink-500 text-white px-10 py-3 rounded-full font-bold text-lg">
+                  Buy Tickets Now
+                </div>
+                <p class="mt-4 text-slate-300">Limited early bird prices available</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Clickable areas will be added dynamically -->
+          
+          <!-- Error reveal overlay -->
+          <div class="error-reveal" id="errorReveal">
+            <div class="reveal-content">
+              <div class="text-5xl mb-6">🎯</div>
+              <h2 class="text-2xl font-bold mb-3" id="errorTitle">Error Detected!</h2>
+              <div class="text-lg font-semibold text-cyan-400 mb-4" id="errorType">TYPO ERROR</div>
+              <p class="text-slate-300 mb-6" id="errorDescription">The word "DESGIN" is misspelled. It should be "DESIGN".</p>
+              <button id="closeReveal" class="px-8 py-3 rounded-full bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] font-bold">
+                Lanjutkan
+              </button>
+            </div>
+          </div>
+          
+          <!-- dotted guides -->
+          <div class="absolute inset-0 guide-vertical pointer-events-none"></div>
+        </div>
+
+        <!-- bottom controls inside poster -->
+        <div class="absolute left-6 right-6 bottom-3 flex items-center justify-between gap-4">
+          <button id="hintBtn" class="px-6 py-3 rounded-full btn-grad-1 font-semibold flex items-center gap-2">
+            <i class="fas fa-lightbulb"></i> Hint (<span id="hintCount">3</span>)
+          </button>
+          <button id="resetBtn" class="px-6 py-3 rounded-full btn-grad-3 font-semibold flex items-center gap-2">
+            <i class="fas fa-redo"></i> Ulangi Poster
+          </button>
+          <button id="nextBtn" class="px-6 py-3 rounded-full btn-grad-2 font-semibold flex items-center gap-2" disabled>
+            <i class="fas fa-arrow-right"></i> Poster Berikutnya
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hint pill -->
+    <div id="hintPill" class="absolute left-10 bottom-10 glass-card py-3 px-5 rounded-full flex items-center gap-3 opacity-0 transition-all duration-300">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center font-bold">💡</div>
+      <div class="text-sm" id="hintText">Kesalahan terdapat pada bagian <span class="text-yellow-300 font-semibold">judul poster</span>.</div>
+    </div>
+  </div>
+
+  <!-- Font Awesome for icons -->
+  <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+  <script>
+    // Since we can't load external FA kit, we'll use emojis instead
+    // Game State
+    const gameState = {
+      currentPoster: 1,
+      totalPosters: 5,
+      postersCompleted: 0,
+      score: 0,
+      hintsLeft: 3,
+      timeLeft: 120, // seconds
+      fastMode: false,
+      gameActive: true,
+      errorFound: false,
+      // Clickable areas for each poster [x1, y1, x2, y2]
+      clickableAreas: {
+        1: [100, 80, 500, 150],   // Typo in title
+        2: [50, 300, 550, 500],   // Alignment issues
+        3: [100, 250, 500, 450],  // Spacing issues  
+        4: [150, 100, 450, 200],  // Contrast issues
+        5: [100, 80, 500, 150]    // Font inconsistency
+      },
+      // Error descriptions
+      errorDescriptions: {
+        1: {
+          type: "TYPO ERROR",
+          title: "Salah Ketik pada Judul",
+          description: "Kata 'DESGIN' pada judul seharusnya ditulis 'DESIGN'. Kesalahan pengetikan mengurangi profesionalitas desain."
+        },
+        2: {
+          type: "ALIGNMENT ERROR", 
+          title: "Ketidaksejajaran Elemen",
+          description: "Kotak-kotak informasi memiliki margin kiri yang tidak konsisten (20px, 50px, 10px, 40px). Alignment yang konsisten menciptakan harmoni visual."
+        },
+        3: {
+          type: "SPACING ERROR",
+          title: "Spasi Tidak Konsisten",
+          description: "Jarak antar elemen dalam daftar tidak seragam (30px, 10px, 40px, 5px). Spasi yang konsisten meningkatkan keterbacaan."
+        },
+        4: {
+          type: "CONTRAST ERROR",
+          title: "Kontras Warna Rendah",
+          description: "Teks berwarna terang (#f8fafc) di atas background terang memiliki kontras rendah, menyulitkan pembacaan. Rasio kontras tidak memenuhi standar aksesibilitas."
+        },
+        5: {
+          type: "FONT INCONSISTENCY",
+          title: "Ketidakkonsistenan Font",
+          description: "Judul menggunakan font 'Comic Sans MS' yang tidak sesuai dengan tema festival musik. Pemilihan font harus konsisten dengan nada dan tujuan desain."
+        }
+      },
+      // Hints for each poster
+      hints: {
+        1: "Cari kesalahan pengetikan pada judul poster.",
+        2: "Perhatikan keselarasan kotak-kotak informasi.",
+        3: "Amati jarak antar elemen dalam daftar fitur.",
+        4: "Perhatikan tingkat keterbacaan teks utama.",
+        5: "Amati pemilihan font pada judul poster."
+      }
+    };
+
+    // DOM Elements
+    const currentPosterEl = document.getElementById('currentPoster');
+    const totalPostersEl = document.getElementById('totalPosters');
+    const postersCompletedEl = document.getElementById('postersCompleted');
+    const scoreEl = document.getElementById('score');
+    const hintsLeftEl = document.getElementById('hintsLeft');
+    const hintCountEl = document.getElementById('hintCount');
+    const timerEl = document.getElementById('timer');
+    const gameModeEl = document.getElementById('gameMode');
+    const modeNormalBtn = document.getElementById('modeNormal');
+    const modeFastBtn = document.getElementById('modeFast');
+    const hintBtn = document.getElementById('hintBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const hintPill = document.getElementById('hintPill');
+    const hintTextEl = document.getElementById('hintText');
+    const posterContainer = document.getElementById('posterContainer');
+    const errorReveal = document.getElementById('errorReveal');
+    const errorTitle = document.getElementById('errorTitle');
+    const errorType = document.getElementById('errorType');
+    const errorDescription = document.getElementById('errorDescription');
+    const closeRevealBtn = document.getElementById('closeReveal');
+    const gameCompleteEl = document.getElementById('gameComplete');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalTimeEl = document.getElementById('finalTime');
+    const finalAccuracyEl = document.getElementById('finalAccuracy');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const progressSteps = document.querySelectorAll('.progress-step');
+
+    // Initialize game
+    function initGame() {
+      updateUI();
+      startTimer();
+      showPoster(1);
+      createClickableArea(1);
+      setupEventListeners();
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Poster click
+      posterContainer.addEventListener('click', handlePosterClick);
+      
+      // Mode buttons
+      modeNormalBtn.addEventListener('click', () => switchMode(false));
+      modeFastBtn.addEventListener('click', () => switchMode(true));
+      
+      // Control buttons
+      hintBtn.addEventListener('click', giveHint);
+      resetBtn.addEventListener('click', resetPoster);
+      nextBtn.addEventListener('click', nextPoster);
+      closeRevealBtn.addEventListener('click', closeReveal);
+      playAgainBtn.addEventListener('click', resetGame);
+      
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (!gameState.gameActive) return;
+        
+        if (e.key === 'h' || e.key === 'H') hintBtn.click();
+        if (e.key === 'r' || e.key === 'R') resetBtn.click();
+        if (e.key === 'n' || e.key === 'N' && !nextBtn.disabled) nextBtn.click();
+        if (e.key === '1') showPoster(1);
+        if (e.key === '2') showPoster(2);
+        if (e.key === '3') showPoster(3);
+        if (e.key === '4') showPoster(4);
+        if (e.key === '5') showPoster(5);
+      });
+    }
+
+    // Show specific poster
+    function showPoster(posterNumber) {
+      if (posterNumber < 1 || posterNumber > gameState.totalPosters) return;
+      
+      // Hide all posters
+      document.querySelectorAll('.poster-content').forEach(poster => {
+        poster.classList.add('hidden');
+      });
+      
+      // Show selected poster
+      document.getElementById(`poster${posterNumber}`).classList.remove('hidden');
+      
+      // Update game state
+      gameState.currentPoster = posterNumber;
+      gameState.errorFound = false;
+      
+      // Remove existing clickable area
+      document.querySelectorAll('.clickable-area').forEach(area => area.remove());
+      
+      // Create new clickable area
+      createClickableArea(posterNumber);
+      
+      // Update progress steps
+      updateProgressSteps();
+      
+      // Update UI
+      updateUI();
+    }
+
+    // Create clickable area for poster
+    function createClickableArea(posterNumber) {
+      const area = gameState.clickableAreas[posterNumber];
+      if (!area) return;
+      
+      const clickableArea = document.createElement('div');
+      clickableArea.className = 'clickable-area';
+      clickableArea.style.left = `${area[0]}px`;
+      clickableArea.style.top = `${area[1]}px`;
+      clickableArea.style.width = `${area[2] - area[0]}px`;
+      clickableArea.style.height = `${area[3] - area[1]}px`;
+      
+      posterContainer.appendChild(clickableArea);
+    }
+
+    // Handle poster click
+    function handlePosterClick(e) {
+      if (!gameState.gameActive || gameState.errorFound) return;
+      
+      const area = gameState.clickableAreas[gameState.currentPoster];
+      if (!area) return;
+      
+      const rect = posterContainer.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Check if click is within clickable area
+      if (x >= area[0] && x <= area[2] && y >= area[1] && y <= area[3]) {
+        handleCorrectClick();
+      } else {
+        handleWrongClick();
+      }
+    }
+
+    // Handle correct click
+    function handleCorrectClick() {
+      gameState.errorFound = true;
+      gameState.postersCompleted++;
+      
+      // Calculate score
+      let points = 200;
+      if (gameState.fastMode) points *= 1.5;
+      const timeBonus = Math.floor(gameState.timeLeft / 10) * 15;
+      points += timeBonus;
+      gameState.score += points;
+      
+      // Show error reveal
+      const errorInfo = gameState.errorDescriptions[gameState.currentPoster];
+      errorTitle.textContent = errorInfo.title;
+      errorType.textContent = errorInfo.type;
+      errorDescription.textContent = errorInfo.description;
+      errorReveal.style.display = 'flex';
+      
+      // Enable next button
+      nextBtn.disabled = false;
+      
+      // Update UI
+      updateUI();
+      
+      // Check if game is complete
+      if (gameState.postersCompleted === gameState.totalPosters) {
+        setTimeout(() => endGame(true), 500);
+      }
+    }
+
+    // Handle wrong click
+    function handleWrongClick() {
+      // Visual feedback
+      posterContainer.classList.add('click-feedback');
+      setTimeout(() => {
+        posterContainer.classList.remove('click-feedback');
+      }, 200);
+      
+      // Penalty
+      gameState.score = Math.max(0, gameState.score - 25);
+      updateUI();
+    }
+
+    // Close error reveal
+    function closeReveal() {
+      errorReveal.style.display = 'none';
+    }
+
+    // Give hint
+    function giveHint() {
+      if (gameState.hintsLeft <= 0 || gameState.errorFound) return;
+      
+      // Show hint pill
+      hintTextEl.innerHTML = gameState.hints[gameState.currentPoster];
+      hintPill.style.opacity = 1;
+      hintPill.classList.add('glow-pill');
+      
+      // Highlight clickable area
+      const clickableArea = document.querySelector('.clickable-area');
+      if (clickableArea) {
+        clickableArea.classList.add('highlight-active');
+        setTimeout(() => {
+          clickableArea.classList.remove('highlight-active');
+        }, 3000);
+      }
+      
+      // Deduct hint and score
+      gameState.hintsLeft--;
+      gameState.score = Math.max(0, gameState.score - 50);
+      
+      // Auto hide hint after 5 seconds
+      setTimeout(() => {
+        hintPill.style.opacity = 0;
+        hintPill.classList.remove('glow-pill');
+      }, 5000);
+      
+      updateUI();
+    }
+
+    // Switch game mode
+    function switchMode(isFast) {
+      gameState.fastMode = isFast;
+      gameState.timeLeft = isFast ? 60 : 120;
+      
+      // Update button styles
+      if (isFast) {
+        modeNormalBtn.className = 'px-4 py-2 rounded-full text-sm bg-transparent border border-white/10 text-slate-300 flex-1';
+        modeFastBtn.className = 'px-4 py-2 rounded-full text-sm bg-gradient-to-r from-[#6ee7b7] to-[#60a5fa] text-black font-medium flex-1';
+        gameModeEl.textContent = 'Mode Cepat';
+        timerEl.classList.add('text-red-400');
+        timerEl.classList.remove('text-emerald-400');
+      } else {
+        modeNormalBtn.className = 'px-4 py-2 rounded-full text-sm bg-gradient-to-r from-[#6ee7b7] to-[#60a5fa] text-black font-medium flex-1';
+        modeFastBtn.className = 'px-4 py-2 rounded-full text-sm bg-transparent border border-white/10 text-slate-300 flex-1';
+        gameModeEl.textContent = 'Mode Normal';
+        timerEl.classList.remove('text-red-400');
+        timerEl.classList.add('text-emerald-400');
+      }
+      
+      startTimer();
+      updateUI();
+    }
+
+    // Reset current poster
+    function resetPoster() {
+      gameState.errorFound = false;
+      gameState.timeLeft = gameState.fastMode ? 60 : 120;
+      nextBtn.disabled = true;
+      closeReveal();
+      startTimer();
+      updateUI();
+    }
+
+    // Next poster
+    function nextPoster() {
+      if (gameState.currentPoster < gameState.totalPosters) {
+        showPoster(gameState.currentPoster + 1);
+        gameState.timeLeft = gameState.fastMode ? 60 : 120;
+        nextBtn.disabled = true;
+        startTimer();
+      }
+    }
+
+    // Update progress steps
+    function updateProgressSteps() {
+      progressSteps.forEach((step, index) => {
+        step.classList.remove('active', 'completed');
+        if (index + 1 === gameState.currentPoster) {
+          step.classList.add('active');
+        } else if (index + 1 < gameState.currentPoster) {
+          step.classList.add('completed');
+        }
+      });
+    }
+
+    // Timer
+    let timerInterval;
+    function startTimer() {
+      clearInterval(timerInterval);
+      
+      timerInterval = setInterval(() => {
+        if (!gameState.gameActive || gameState.errorFound) return;
+        
+        gameState.timeLeft--;
+        
+        if (gameState.timeLeft <= 0) {
+          gameState.timeLeft = 0;
+          gameState.gameActive = false;
+          clearInterval(timerInterval);
+          endGame(false);
+        }
+        
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    // Update timer display
+    function updateTimerDisplay() {
+      const minutes = Math.floor(gameState.timeLeft / 60);
+      const seconds = gameState.timeLeft % 60;
+      timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // Update UI
+    function updateUI() {
+      currentPosterEl.textContent = gameState.currentPoster;
+      totalPostersEl.textContent = gameState.totalPosters;
+      postersCompletedEl.textContent = gameState.postersCompleted;
+      scoreEl.textContent = gameState.score;
+      hintsLeftEl.textContent = gameState.hintsLeft;
+      hintCountEl.textContent = gameState.hintsLeft;
+      
+      updateTimerDisplay();
+      
+      // Update button states
+      hintBtn.disabled = gameState.hintsLeft <= 0 || gameState.errorFound;
+      nextBtn.disabled = !gameState.errorFound || gameState.currentPoster === gameState.totalPosters;
+    }
+
+    // End game
+    function endGame(isWin) {
+      gameState.gameActive = false;
+      clearInterval(timerInterval);
+      
+      if (isWin) {
+        // Calculate final score
+        const timeBonus = Math.floor(gameState.timeLeft / 5) * 20;
+        gameState.score += timeBonus + 1000; // Completion bonus
+        
+        finalScoreEl.textContent = gameState.score;
+        finalTimeEl.textContent = timerEl.textContent;
+        
+        // Calculate accuracy
+        const accuracy = Math.min(100, Math.round((gameState.postersCompleted / gameState.totalPosters) * 100));
+        finalAccuracyEl.textContent = `${accuracy}%`;
+        
+        gameCompleteEl.style.display = 'flex';
+      } else {
+        alert('Waktu habis! Coba lagi untuk menemukan semua kesalahan.');
+        resetPoster();
+      }
+    }
+
+    // Reset entire game
+    function resetGame() {
+      gameState.currentPoster = 1;
+      gameState.postersCompleted = 0;
+      gameState.score = 0;
+      gameState.hintsLeft = 3;
+      gameState.gameActive = true;
+      gameState.errorFound = false;
+      gameState.timeLeft = gameState.fastMode ? 60 : 120;
+      
+      gameCompleteEl.style.display = 'none';
+      closeReveal();
+      showPoster(1);
+      startTimer();
+      updateUI();
+    }
+
+    // Initialize game when page loads
+    document.addEventListener('DOMContentLoaded', initGame);
+  </script>
+</body>
+</html>
