@@ -1,85 +1,126 @@
 <!doctype html>
 <html lang="id">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GERKA - Spot The Error</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     /* Tailwind config override for gradients and glass effect */
-    :root{
-      --glass: rgba(255,255,255,0.04);
-      --card: rgba(255,255,255,0.03);
+    :root {
+      --glass: rgba(255, 255, 255, 0.8);
+      --card: rgba(255, 255, 255, 0.9);
+
+      /* Warna utama berdasarkan list yang diberikan */
+      --primary: #ec268f;
+      /* Pink cerah */
+      --secondary: #f58634;
+      /* Oranye */
+      --accent: #f65566;
+      /* Pink kemerahan */
+      --accent2: #f76a53;
+      /* Oranye kemerahan */
+      --accent3: #f43c7f;
+      /* Pink gelap */
+
+      /* Warna untuk latar belakang terang */
+      --bg-light: #fef0f5;
+      --bg-light2: #fff5f0;
+      --text-dark: #2A2D43;
+      /* Teks gelap untuk kontras */
+      --text-medium: #4A4D63;
+      /* Teks medium */
+      --card-bg: rgba(255, 255, 255, 0.9);
+      /* Latar belakang kartu */
+      --border-light: rgba(236, 38, 143, 0.15);
+      /* Border transparan */
+
+      /* Warna sistem */
+      --correct: #4CAF50;
+      --wrong: #FF5252;
+      --shadow: rgba(0, 0, 0, 0.08);
     }
 
+
     /* small helper for consistent card shadow */
-    .glass-card{
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      box-shadow: 0 8px 30px rgba(2,6,23,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+    .glass-card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.85));
+      box-shadow: 0 8px 30px rgba(229, 62, 123, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(8px);
-      border: 1px solid rgba(255,255,255,0.04);
+      border: 1px solid rgba(255, 255, 255, 0.8);
     }
 
     /* dotted guide lines on the poster */
-    .guide-vertical::before, .guide-vertical::after{
+    .guide-vertical::before,
+    .guide-vertical::after {
       content: '';
       position: absolute;
       top: 20px;
       bottom: 100px;
       width: 1px;
-      background-image: linear-gradient(180deg, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0) 0%);
+      background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0) 0%);
       background-size: 1px 10px;
       opacity: 0.18;
     }
-    .guide-vertical::before{ left: 32%; }
-    .guide-vertical::after{ right: 32%; }
+
+    .guide-vertical::before {
+      left: 32%;
+    }
+
+    .guide-vertical::after {
+      right: 32%;
+    }
 
     /* pill glow */
-    .glow-pill{ 
-      box-shadow: 0 6px 30px rgba(99,102,241,0.25), 0 1px 0 rgba(255,255,255,0.03);
+    .glow-pill {
+      box-shadow: 0 6px 30px rgba(236, 38, 143, 0.25), 0 1px 0 rgba(255, 255, 255, 0.9);
       transition: all 0.3s ease;
-    } 
+    }
 
     /* gradient buttons */
-    .btn-grad-1{ 
-      background: linear-gradient(90deg,#5ee7df,#4f46e5); 
-      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    .btn-grad-1 {
+      background: linear-gradient(90deg, #ec268f, #f43c7f);
+      box-shadow: 0 4px 15px rgba(236, 38, 143, 0.3);
     }
-    .btn-grad-2{ 
-      background: linear-gradient(90deg,#4f46e5,#ef476f); 
-      box-shadow: 0 4px 15px rgba(239, 71, 111, 0.3);
+
+    .btn-grad-2 {
+      background: linear-gradient(90deg, #f65566, #f76a53);
+      box-shadow: 0 4px 15px rgba(246, 85, 102, 0.3);
     }
-    .btn-grad-3{ 
-      background: linear-gradient(90deg,#60a5fa,#7c3aed); 
-      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+
+    .btn-grad-3 {
+      background: linear-gradient(90deg, #f58634, #f65566);
+      box-shadow: 0 4px 15px rgba(245, 134, 52, 0.3);
     }
 
     /* subtle rounded poster shadow */
-    .poster-wrap{ 
-      box-shadow: 0 40px 80px rgba(3,7,18,0.7);
+    .poster-wrap {
+      box-shadow: 0 40px 80px rgba(229, 62, 123, 0.15);
       transition: all 0.3s ease;
     }
 
     /* poster hover effect */
     .poster-wrap:hover {
       transform: translateY(-5px);
-      box-shadow: 0 50px 100px rgba(3,7,18,0.8);
+      box-shadow: 0 50px 100px rgba(229, 62, 123, 0.2);
     }
 
     /* clickable area overlay */
     .clickable-area {
       position: absolute;
-      /* border: 2px dashed rgba(255, 215, 0, 0.5); */
+      border: 2px dashed rgba(236, 38, 143, 0.5);
       border-radius: 8px;
-      /* background-color: rgba(255, 215, 0, 0.1); */
+      background-color: rgba(236, 38, 143, 0.1);
       z-index: 10;
       cursor: crosshair;
       transition: all 0.3s ease;
     }
 
     .clickable-area:hover {
-      /* background-color: rgba(255, 215, 0, 0.2); */
-      /* border-color: rgba(255, 215, 0, 0.8); */
+      background-color: rgba(236, 38, 143, 0.2);
+      border-color: rgba(236, 38, 143, 0.8);
     }
 
     /* error reveal overlay */
@@ -89,7 +130,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(255, 255, 255, 0.95);
       display: none;
       justify-content: center;
       align-items: center;
@@ -98,14 +139,14 @@
     }
 
     .reveal-content {
-      background: linear-gradient(180deg, rgba(30, 30, 40, 0.95), rgba(15, 15, 25, 0.98));
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 255, 0.95));
+      border: 1px solid rgba(236, 38, 143, 0.2);
       border-radius: 16px;
       padding: 40px;
       max-width: 500px;
       width: 90%;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 20px 60px rgba(236, 38, 143, 0.15);
     }
 
     /* progress indicator */
@@ -113,28 +154,58 @@
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.1);
+      background-color: rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
     }
 
     .progress-step.active {
-      background-color: #4f46e5;
+      background-color: #ec268f;
       transform: scale(1.3);
-      box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
+      box-shadow: 0 0 10px rgba(236, 38, 143, 0.5);
     }
 
     .progress-step.completed {
-      background-color: #10b981;
+      background-color: #f58634;
     }
 
     /* typo error styling */
     .typo-error {
       position: relative;
+      display: inline-block;
     }
 
     .typo-error::after {
       content: "DESGIN";
-      /* Typo: seharusnya "DESIGN" */
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(236, 38, 143, 0.3) 0%, rgba(246, 85, 102, 0.1) 100%);
+      border-radius: 4px;
+      animation: pulse 2s infinite;
+    }
+
+    /* alignment error styling */
+    .alignment-error {
+      border-left: 3px solid rgba(236, 38, 143, 0.5) !important;
+    }
+
+    /* spacing error styling */
+    .spacing-error {
+      background: linear-gradient(90deg, rgba(245, 134, 52, 0.2) 0%, rgba(245, 134, 52, 0.05) 100%) !important;
+    }
+
+    /* contrast error styling */
+    .contrast-error {
+      color: #f8fafc !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    /* font inconsistency styling */
+    .font-error {
+      font-family: 'Comic Sans MS', cursive !important;
+      position: relative;
     }
 
     /* game complete overlay */
@@ -144,7 +215,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(255, 255, 255, 0.98);
       backdrop-filter: blur(10px);
       display: none;
       justify-content: center;
@@ -154,9 +225,17 @@
 
     /* click feedback animation */
     @keyframes clickFeedback {
-      0% { transform: scale(1); }
-      50% { transform: scale(0.95); }
-      100% { transform: scale(1); }
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(0.95);
+      }
+
+      100% {
+        transform: scale(1);
+      }
     }
 
     .click-feedback {
@@ -165,41 +244,145 @@
 
     /* hint highlight effect */
     @keyframes highlightPulse {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 0.6; }
+
+      0%,
+      100% {
+        opacity: 0.3;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
     }
 
     .highlight-active {
       animation: highlightPulse 2s infinite;
     }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 0.3;
+      }
+
+      50% {
+        opacity: 0.6;
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+      .poster-wrap {
+        width: 500px !important;
+      }
+
+      .poster-wrap .h-full {
+        height: 650px !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .poster-wrap {
+        width: 400px !important;
+      }
+
+      .poster-wrap .h-full {
+        height: 550px !important;
+      }
+
+      .absolute.left-6,
+      .absolute.right-6 {
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        width: 100% !important;
+        margin-bottom: 20px;
+      }
+
+      .flex-col.items-center {
+        padding-top: 20px;
+      }
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(254, 240, 245, 0.5);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, #ec268f, #f58634);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(to bottom, #f43c7f, #f65566);
+    }
+
+    /* Header Styles */
+    header {
+      text-align: center;
+      background: var(--card-bg);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-light);
+      flex-shrink: 0;
+      padding: 8px;
+      box-shadow: 0 5px 15px var(--shadow);
+    }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-tr from-[#08112b] via-[#071334] to-[#061124] text-white font-sans overflow-x-hidden">
+
+<body
+  class="min-h-screen bg-gradient-to-tr from-[#fef0f5] via-[#fef5f0] to-[#fff5f0] text-gray-800 font-sans overflow-x-hidden">
+  <header style="display: flex; align-items: center; gap: 15px; justify-content: center;">
+    <img src="assets/img/provinsi.png" alt="Logo GERKA" style="width: 60px; margin-bottom: 10px;">
+    <img src="assets/img/skadel.png" alt="Logo GERKA" style="width: 60px; margin-bottom: 10px;">
+    <div>
+      <h1 style="font-size: 2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">GERKA - SPOT THE ERROR</h1>
+      <div class="level-indicator" id="levelIndicator"></div>
+    </div>
+    <img src="assets/img/jurusan.png" alt="Logo GERKA" style="width: 60px; margin-bottom: 10px;">
+    <img src="assets/img/gerka.png" alt="Logo GERKA" style="width: 60px; margin-bottom: 10px;">
+  </header>
   <!-- Game Complete Overlay -->
   <div id="gameComplete" class="game-complete">
     <div class="glass-card p-10 rounded-3xl max-w-lg w-11/12 text-center">
       <div class="text-5xl mb-6">🏆</div>
-      <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-[#5ee7df] to-[#4f46e5] bg-clip-text text-transparent">
+      <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-[#ec268f] to-[#f58634] bg-clip-text text-transparent">
         Game Complete!
       </h2>
-      <p class="text-slate-300 mb-8">Selamat! Anda telah menemukan semua kesalahan desain.</p>
-      
+      <p class="text-gray-600 mb-8">Selamat! Anda telah menemukan semua kesalahan desain.</p>
+
       <div class="grid grid-cols-3 gap-6 mb-10">
         <div>
-          <div class="text-2xl font-bold text-emerald-400" id="finalScore">0</div>
-          <div class="text-sm text-slate-400">Skor Akhir</div>
+          <div class="text-2xl font-bold text-[#ec268f]" id="finalScore">0</div>
+          <div class="text-sm text-gray-500">Skor Akhir</div>
         </div>
         <div>
-          <div class="text-2xl font-bold text-amber-400" id="finalTime">00:00</div>
-          <div class="text-sm text-slate-400">Waktu Tersisa</div>
+          <div class="text-2xl font-bold text-[#f58634]" id="finalTime">00:00</div>
+          <div class="text-sm text-gray-500">Waktu Tersisa</div>
         </div>
         <div>
-          <div class="text-2xl font-bold text-cyan-400" id="finalAccuracy">100%</div>
-          <div class="text-sm text-slate-400">Akurasi</div>
+          <div class="text-2xl font-bold text-[#f65566]" id="finalAccuracy">100%</div>
+          <div class="text-sm text-gray-500">Akurasi</div>
         </div>
       </div>
-      
-      <button id="playAgainBtn" class="px-8 py-4 rounded-full bg-gradient-to-r from-[#4f46e5] to-[#ef476f] font-bold text-lg w-full">
+
+      <button id="playAgainBtn"
+        class="px-8 py-4 rounded-full bg-gradient-to-r from-[#ec268f] to-[#f65566] font-bold text-lg w-full text-white hover:opacity-90 transition-opacity">
         Main Lagi
       </button>
     </div>
@@ -207,22 +390,23 @@
 
   <div class="max-w-[1400px] mx-auto px-6 py-1 relative min-h-screen">
     <!-- Left status card -->
-    <div class="absolute left-6 top-10 w-72 glass-card p-5 rounded-2xl">
+    <div class="absolute left-6 top-10 w-72 glass-card p-5 rounded-2xl z-20">
       <div class="flex items-center gap-3 mb-5">
-        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#ff7a7a] to-[#ffb86b] flex items-center justify-center text-black font-bold text-xl">🔍</div>
+        <div
+          class="w-12 h-12 rounded-full bg-gradient-to-br from-[#ec268f] to-[#f58634] flex items-center justify-center text-white font-bold text-xl">
+          🔍</div>
         <div>
-          <div class="font-bold text-lg">GERKA - Spot The Error</div>
-          <div class="text-xs text-slate-300" id="gameMode">Mode Normal</div>
+          <div class="text-lg text-gray-600" id="gameMode">Mode Normal</div>
         </div>
       </div>
-      
+
       <div class="space-y-4">
         <div>
-          <div class="text-slate-300/80 text-sm mb-1">Progress</div>
+          <div class="text-gray-600 text-sm mb-1">Progress</div>
           <div class="flex items-center gap-2 mb-2">
-            <div class="text-lg font-semibold" id="currentPoster">1</div>
-            <div class="text-slate-400">/</div>
-            <div class="text-slate-400" id="totalPosters">5</div>
+            <div class="text-lg font-semibold text-gray-800" id="currentPoster">1</div>
+            <div class="text-gray-400">/</div>
+            <div class="text-gray-400" id="totalPosters">5</div>
           </div>
           <div class="flex gap-2">
             <div class="progress-step active" data-poster="1"></div>
@@ -232,65 +416,68 @@
             <div class="progress-step" data-poster="5"></div>
           </div>
         </div>
-        
+
         <div class="grid grid-cols-2">
-          <div class="text-slate-300/80">Poster Selesai</div>
-          <div class="text-right font-semibold text-emerald-400" id="postersCompleted">0</div>
+          <div class="text-gray-600">Poster Selesai</div>
+          <div class="text-right font-semibold text-[#ec268f]" id="postersCompleted">0</div>
         </div>
-        
+
         <div class="grid grid-cols-2">
-          <div class="text-slate-300/80">Skor</div>
-          <div class="text-right font-bold text-2xl text-orange-400" id="score">0</div>
+          <div class="text-gray-600">Skor</div>
+          <div class="text-right font-bold text-2xl text-[#f58634]" id="score">0</div>
         </div>
-        
+
         <div class="grid grid-cols-2">
-          <div class="text-slate-300/80">Hint Tersisa</div>
-          <div class="text-right font-semibold text-cyan-400" id="hintsLeft">3</div>
+          <div class="text-gray-600">Hint Tersisa</div>
+          <div class="text-right font-semibold text-[#f65566]" id="hintsLeft">3</div>
         </div>
       </div>
     </div>
 
     <!-- Right top control card -->
-    <div class="absolute right-6 top-10 w-72 glass-card p-4 rounded-2xl">
+    <div class="absolute right-6 top-10 w-72 glass-card p-4 rounded-2xl z-20">
       <div class="flex gap-3 items-center mb-4">
-        <button id="modeNormal" class="px-4 py-2 rounded-full text-sm bg-gradient-to-r from-[#6ee7b7] to-[#60a5fa] text-black font-medium flex-1">
+        <button id="modeNormal"
+          class="px-4 py-2 rounded-full text-sm bg-gradient-to-r from-[#ec268f] to-[#f65566] text-white font-medium flex-1 hover:opacity-90 transition-opacity">
           <i class="fas fa-walking mr-2"></i>Normal
         </button>
-        <button id="modeFast" class="px-4 py-2 rounded-full text-sm bg-transparent border border-white/10 text-slate-300 flex-1">
+        <button id="modeFast"
+          class="px-4 py-2 rounded-full text-sm bg-transparent border border-gray-300 text-gray-700 flex-1 hover:bg-gray-50 transition-colors">
           <i class="fas fa-running mr-2"></i>Cepat
         </button>
       </div>
-      
+
       <div class="text-center">
-        <div class="text-xs text-slate-400 mb-1">SISA WAKTU</div>
-        <div id="timer" class="font-mono font-bold text-3xl text-emerald-400">02:00</div>
+        <div class="text-xs text-gray-500 mb-1">SISA WAKTU</div>
+        <div id="timer" class="font-mono font-bold text-3xl text-[#ec268f]">02:00</div>
       </div>
-      
-      <div class="mt-4 text-center text-sm text-slate-400">
+
+      <div class="mt-4 text-center text-sm text-gray-500">
         Klik area dengan kesalahan pada poster
       </div>
     </div>
 
     <!-- Center poster column -->
-    <div class="flex flex-col items-center justify-center ">
-      <div class="w-[600px] poster-wrap rounded-2xl overflow-hidden bg-black relative">
+    <div class="flex flex-col items-center justify-center pt-4">
+      <div class="w-[600px] poster-wrap rounded-2xl overflow-hidden bg-white relative z-10">
         <!-- Poster content -->
-        <div class="relative h-[750px] bg-black cursor-crosshair" id="posterContainer">
+        <div class="relative h-[750px] bg-white cursor-crosshair" id="posterContainer">
           <!-- Poster 1: Typo Error -->
           <div id="poster1" class="poster-content absolute inset-0">
-            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #0a192f 0%, #1e3a5f 100%); color: #e2e8f0; font-family: 'Segoe UI', sans-serif;">
+            <div class="h-full flex flex-col"
+              style="background: linear-gradient(135deg, #0a192f 0%, #1e3a5f 100%); color: #e2e8f0; font-family: 'Segoe UI', sans-serif;">
               <div class="text-center mt-12">
                 <h1 class="text-5xl font-bold mb-4 typo-error">DESGIN CONFERENCE 2024</h1>
                 <p class="text-xl text-slate-300">The Future of Digital Creativity</p>
               </div>
-              
+
               <div class="flex-1 flex items-center justify-center">
                 <div class="text-center max-w-lg">
                   <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
                     <div class="text-3xl font-bold text-cyan-400 mb-2">NOVEMBER 24-26</div>
                     <div class="text-lg">Convention Center, Jakarta</div>
                   </div>
-                  
+
                   <div class="space-y-4">
                     <div class="text-2xl font-semibold">Featuring Top Designers:</div>
                     <div class="flex justify-center gap-6">
@@ -301,49 +488,53 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="text-center mb-10">
-                <div class="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-full font-bold text-lg">
+                <div
+                  class="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-8 py-3 rounded-full font-bold text-lg">
                   Register Now at designconf.com
                 </div>
               </div>
             </div>
           </div>
-          
+
           <!-- Poster 2: Alignment Error -->
           <div id="poster2" class="poster-content absolute inset-0 hidden">
-            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #2d1b69 0%, #6d28d9 100%); color: white; font-family: 'Arial', sans-serif;">
+            <div class="h-full flex flex-col"
+              style="background: linear-gradient(135deg, #2d1b69 0%, #6d28d9 100%); color: white; font-family: 'Arial', sans-serif;">
               <div class="text-center mt-10">
                 <h1 class="text-4xl font-bold mb-2">TECH INNOVATION SUMMIT</h1>
                 <p class="text-lg text-slate-300">Where Ideas Become Reality</p>
               </div>
-              
+
               <div class="flex-1 flex items-center px-12">
                 <div class="w-full">
                   <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-white/10 p-6 rounded-xl" style="margin-left: 20px;">
+                    <div class="bg-white/10 p-6 rounded-xl alignment-error" style="margin-left: 20px;">
                       <h3 class="text-xl font-bold mb-2">AI & Machine Learning</h3>
                       <p class="text-slate-300">Explore the future of artificial intelligence</p>
                     </div>
-                    
-                    <div class="bg-white/10 p-6 rounded-xl" style="margin-left: 50px; margin-top: 15px;">
+
+                    <div class="bg-white/10 p-6 rounded-xl alignment-error"
+                      style="margin-left: 50px; margin-top: 15px;">
                       <h3 class="text-xl font-bold mb-2">Web3 & Blockchain</h3>
                       <p class="text-slate-300">Decentralized technologies explained</p>
                     </div>
-                    
-                    <div class="bg-white/10 p-6 rounded-xl" style="margin-left: 10px;">
+
+                    <div class="bg-white/10 p-6 rounded-xl alignment-error" style="margin-left: 10px;">
                       <h3 class="text-xl font-bold mb-2">UX/UI Design Trends</h3>
                       <p class="text-slate-300">Latest design patterns for 2024</p>
                     </div>
-                    
-                    <div class="bg-white/10 p-6 rounded-xl" style="margin-left: 40px; margin-top: -10px;">
+
+                    <div class="bg-white/10 p-6 rounded-xl alignment-error"
+                      style="margin-left: 40px; margin-top: -10px;">
                       <h3 class="text-xl font-bold mb-2">Sustainable Tech</h3>
                       <p class="text-slate-300">Green technology solutions</p>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div class="text-center mb-12">
                 <div class="inline-block bg-white text-purple-900 px-10 py-3 rounded-full font-bold text-lg">
                   Get Tickets
@@ -352,39 +543,40 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Poster 3: Spacing Error -->
           <div id="poster3" class="poster-content absolute inset-0 hidden">
-            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; font-family: 'Helvetica', sans-serif;">
+            <div class="h-full flex flex-col"
+              style="background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%); color: white; font-family: 'Helvetica', sans-serif;">
               <div class="text-center mt-12">
                 <h1 class="text-5xl font-bold mb-6">SUSTAINABILITY EXPO</h1>
                 <p class="text-xl">Building a Greener Tomorrow</p>
               </div>
-              
+
               <div class="flex-1 flex items-center justify-center px-16">
                 <div class="w-full space-y-8">
-                  <div class="bg-white/10 p-5 rounded-lg" style="margin-bottom: 30px;">
+                  <div class="bg-white/10 p-5 rounded-lg spacing-error" style="margin-bottom: 30px;">
                     <h3 class="text-2xl font-bold">Renewable Energy Solutions</h3>
                     <p>Solar, wind, and hydro power innovations</p>
                   </div>
-                  
-                  <div class="bg-white/10 p-5 rounded-lg" style="margin-bottom: 10px;">
+
+                  <div class="bg-white/10 p-5 rounded-lg spacing-error" style="margin-bottom: 10px;">
                     <h3 class="text-2xl font-bold">Circular Economy</h3>
                     <p>Redesigning waste into resources</p>
                   </div>
-                  
-                  <div class="bg-white/10 p-5 rounded-lg" style="margin-bottom: 40px;">
+
+                  <div class="bg-white/10 p-5 rounded-lg spacing-error" style="margin-bottom: 40px;">
                     <h3 class="text-2xl font-bold">Green Transportation</h3>
                     <p>Electric vehicles and sustainable mobility</p>
                   </div>
-                  
-                  <div class="bg-white/10 p-5 rounded-lg" style="margin-bottom: 5px;">
+
+                  <div class="bg-white/10 p-5 rounded-lg spacing-error" style="margin-bottom: 5px;">
                     <h3 class="text-2xl font-bold">Eco-Friendly Products</h3>
                     <p>Everyday items with zero waste</p>
                   </div>
                 </div>
               </div>
-              
+
               <div class="text-center mb-10">
                 <div class="inline-block bg-white text-teal-900 px-8 py-3 rounded-full font-bold text-lg">
                   Join the Movement
@@ -393,34 +585,35 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Poster 4: Contrast Error -->
           <div id="poster4" class="poster-content absolute inset-0 hidden">
-            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); color: #f8fafc; font-family: 'Georgia', serif;">
+            <div class="h-full flex flex-col"
+              style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); color: #f8fafc; font-family: 'Georgia', serif;">
               <div class="text-center mt-16">
-                <h1 class="text-5xl font-bold mb-4 text-slate-100">ART & CULTURE FESTIVAL</h1>
-                <p class="text-xl text-slate-200">Celebrating Creative Expression</p>
+                <h1 class="text-5xl font-bold mb-4 contrast-error">ART & CULTURE FESTIVAL</h1>
+                <p class="text-xl contrast-error">Celebrating Creative Expression</p>
               </div>
-              
+
               <div class="flex-1 flex items-center justify-center">
                 <div class="text-center max-w-xl">
                   <div class="bg-white/20 backdrop-blur-sm rounded-2xl p-8 mb-8">
-                    <div class="text-4xl font-bold text-slate-100 mb-2">AUGUST 10-12</div>
-                    <div class="text-lg text-slate-200">Central Park, New York City</div>
+                    <div class="text-4xl font-bold contrast-error mb-2">AUGUST 10-12</div>
+                    <div class="text-lg contrast-error">Central Park, New York City</div>
                   </div>
-                  
+
                   <div class="space-y-6">
-                    <div class="text-2xl font-semibold text-slate-100">Featuring:</div>
+                    <div class="text-2xl font-semibold contrast-error">Featuring:</div>
                     <div class="space-y-4">
-                      <div class="text-lg text-slate-200">Live Music Performances</div>
-                      <div class="text-lg text-slate-200">Art Installations & Exhibits</div>
-                      <div class="text-lg text-slate-200">Cultural Workshops</div>
-                      <div class="text-lg text-slate-200">Food from Around the World</div>
+                      <div class="text-lg contrast-error">Live Music Performances</div>
+                      <div class="text-lg contrast-error">Art Installations & Exhibits</div>
+                      <div class="text-lg contrast-error">Cultural Workshops</div>
+                      <div class="text-lg contrast-error">Food from Around the World</div>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               <div class="text-center mb-12">
                 <div class="inline-block bg-slate-100 text-slate-800 px-10 py-3 rounded-full font-bold text-lg">
                   Free Admission
@@ -428,22 +621,23 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Poster 5: Font Inconsistency -->
           <div id="poster5" class="poster-content absolute inset-0 hidden">
-            <div class="h-full flex flex-col" style="background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%); color: white;">
+            <div class="h-full flex flex-col"
+              style="background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%); color: white;">
               <div class="text-center mt-12">
-                <h1 class="text-5xl font-bold mb-4" style="font-family: 'Comic Sans MS', cursive;">MUSIC FESTIVAL EXTRAVAGANZA</h1>
+                <h1 class="text-5xl font-bold mb-4 font-error">MUSIC FESTIVAL EXTRAVAGANZA</h1>
                 <p class="text-xl" style="font-family: 'Arial', sans-serif;">The Ultimate Sound Experience</p>
               </div>
-              
+
               <div class="flex-1 flex items-center justify-center">
                 <div class="text-center">
                   <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 mb-8">
                     <div class="text-4xl font-bold text-yellow-300 mb-2">JULY 20-22</div>
                     <div class="text-lg">Las Vegas Motor Speedway</div>
                   </div>
-                  
+
                   <div class="space-y-6">
                     <div class="text-2xl font-bold">Lineup Includes:</div>
                     <div class="flex justify-center gap-8">
@@ -463,44 +657,49 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="text-center mb-10">
-                <div class="inline-block bg-gradient-to-r from-yellow-400 to-pink-500 text-white px-10 py-3 rounded-full font-bold text-lg">
+                <div
+                  class="inline-block bg-gradient-to-r from-yellow-400 to-pink-500 text-white px-10 py-3 rounded-full font-bold text-lg">
                   Buy Tickets Now
                 </div>
                 <p class="mt-4 text-slate-300">Limited early bird prices available</p>
               </div>
             </div>
           </div>
-          
-          <!-- Clickable areas will be added dynamically -->
-          
+
           <!-- Error reveal overlay -->
           <div class="error-reveal" id="errorReveal">
             <div class="reveal-content">
-              <div class="text-5xl mb-6">🎯</div>
-              <h2 class="text-2xl font-bold mb-3" id="errorTitle">Error Detected!</h2>
-              <div class="text-lg font-semibold text-cyan-400 mb-4" id="errorType">TYPO ERROR</div>
-              <p class="text-slate-300 mb-6" id="errorDescription">The word "DESGIN" is misspelled. It should be "DESIGN".</p>
-              <button id="closeReveal" class="px-8 py-3 rounded-full bg-gradient-to-r from-[#4f46e5] to-[#7c3aed] font-bold">
+              <div class="text-5xl mb-6 text-[#ec268f]">🎯</div>
+              <h2 class="text-2xl font-bold mb-3 text-gray-800" id="errorTitle">Error Detected!</h2>
+              <div class="text-lg font-semibold text-[#f65566] mb-4" id="errorType">TYPO ERROR</div>
+              <p class="text-gray-600 mb-6" id="errorDescription">The word "DESGIN" is misspelled. It should be
+                "DESIGN".</p>
+              <button id="closeReveal"
+                class="px-8 py-3 rounded-full bg-gradient-to-r from-[#ec268f] to-[#f76a53] font-bold text-white hover:opacity-90 transition-opacity">
                 Lanjutkan
               </button>
             </div>
           </div>
-          
+
           <!-- dotted guides -->
           <div class="absolute inset-0 guide-vertical pointer-events-none"></div>
         </div>
 
         <!-- bottom controls inside poster -->
-        <div class="absolute left-6 right-6 bottom-3 flex items-center justify-between gap-4">
-          <button id="hintBtn" class="px-6 py-3 rounded-full btn-grad-1 font-semibold flex items-center gap-2">
+        <div class="absolute left-6 right-6 bottom-3 flex items-center justify-between gap-4 z-20">
+          <button id="hintBtn"
+            class="px-6 py-3 rounded-full btn-grad-1 font-semibold flex items-center gap-2 text-white hover:opacity-90 transition-opacity">
             <i class="fas fa-lightbulb"></i> Hint (<span id="hintCount">3</span>)
           </button>
-          <button id="resetBtn" class="px-6 py-3 rounded-full btn-grad-3 font-semibold flex items-center gap-2">
+          <button id="resetBtn"
+            class="px-6 py-3 rounded-full btn-grad-3 font-semibold flex items-center gap-2 text-white hover:opacity-90 transition-opacity">
             <i class="fas fa-redo"></i> Ulangi Poster
           </button>
-          <button id="nextBtn" class="px-6 py-3 rounded-full btn-grad-2 font-semibold flex items-center gap-2" disabled>
+          <button id="nextBtn"
+            class="px-6 py-3 rounded-full btn-grad-2 font-semibold flex items-center gap-2 text-white hover:opacity-90 transition-opacity"
+            disabled>
             <i class="fas fa-arrow-right"></i> Poster Berikutnya
           </button>
         </div>
@@ -508,16 +707,17 @@
     </div>
 
     <!-- Hint pill -->
-    <div id="hintPill" class="absolute left-10 bottom-10 glass-card py-3 px-5 rounded-full flex items-center gap-3 opacity-0 transition-all duration-300">
-      <div class="w-8 h-8 rounded-full bg-gradient-to-r from-pink-500 to-purple-500 flex items-center justify-center font-bold">💡</div>
-      <div class="text-sm" id="hintText">Kesalahan terdapat pada bagian <span class="text-yellow-300 font-semibold">judul poster</span>.</div>
+    <div id="hintPill"
+      class="absolute left-1/2 -translate-x-1/2 bottom-24 glass-card py-3 px-5 rounded-full flex items-center gap-3 opacity-0 transition-all duration-300 z-30">
+      <div
+        class="w-8 h-8 rounded-full bg-gradient-to-r from-[#ec268f] to-[#f76a53] flex items-center justify-center font-bold text-white">
+        💡</div>
+      <div class="text-sm text-gray-800" id="hintText">Kesalahan terdapat pada bagian <span
+          class="text-[#ec268f] font-semibold">judul poster</span>.</div>
     </div>
   </div>
 
-  <!-- Font Awesome for icons -->
-  <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
   <script>
-    // Since we can't load external FA kit, we'll use emojis instead
     // Game State
     const gameState = {
       currentPoster: 1,
@@ -545,7 +745,7 @@
           description: "Kata 'DESGIN' pada judul seharusnya ditulis 'DESIGN'. Kesalahan pengetikan mengurangi profesionalitas desain."
         },
         2: {
-          type: "ALIGNMENT ERROR", 
+          type: "ALIGNMENT ERROR",
           title: "Ketidaksejajaran Elemen",
           description: "Kotak-kotak informasi memiliki margin kiri yang tidak konsisten (20px, 50px, 10px, 40px). Alignment yang konsisten menciptakan harmoni visual."
         },
@@ -617,22 +817,22 @@
     function setupEventListeners() {
       // Poster click
       posterContainer.addEventListener('click', handlePosterClick);
-      
+
       // Mode buttons
       modeNormalBtn.addEventListener('click', () => switchMode(false));
       modeFastBtn.addEventListener('click', () => switchMode(true));
-      
+
       // Control buttons
       hintBtn.addEventListener('click', giveHint);
       resetBtn.addEventListener('click', resetPoster);
       nextBtn.addEventListener('click', nextPoster);
       closeRevealBtn.addEventListener('click', closeReveal);
       playAgainBtn.addEventListener('click', resetGame);
-      
+
       // Keyboard shortcuts
       document.addEventListener('keydown', (e) => {
         if (!gameState.gameActive) return;
-        
+
         if (e.key === 'h' || e.key === 'H') hintBtn.click();
         if (e.key === 'r' || e.key === 'R') resetBtn.click();
         if (e.key === 'n' || e.key === 'N' && !nextBtn.disabled) nextBtn.click();
@@ -641,34 +841,35 @@
         if (e.key === '3') showPoster(3);
         if (e.key === '4') showPoster(4);
         if (e.key === '5') showPoster(5);
+        if (e.key === 'Escape') closeReveal();
       });
     }
 
     // Show specific poster
     function showPoster(posterNumber) {
       if (posterNumber < 1 || posterNumber > gameState.totalPosters) return;
-      
+
       // Hide all posters
       document.querySelectorAll('.poster-content').forEach(poster => {
         poster.classList.add('hidden');
       });
-      
+
       // Show selected poster
       document.getElementById(`poster${posterNumber}`).classList.remove('hidden');
-      
+
       // Update game state
       gameState.currentPoster = posterNumber;
       gameState.errorFound = false;
-      
+
       // Remove existing clickable area
       document.querySelectorAll('.clickable-area').forEach(area => area.remove());
-      
+
       // Create new clickable area
       createClickableArea(posterNumber);
-      
+
       // Update progress steps
       updateProgressSteps();
-      
+
       // Update UI
       updateUI();
     }
@@ -677,28 +878,28 @@
     function createClickableArea(posterNumber) {
       const area = gameState.clickableAreas[posterNumber];
       if (!area) return;
-      
+
       const clickableArea = document.createElement('div');
       clickableArea.className = 'clickable-area';
       clickableArea.style.left = `${area[0]}px`;
       clickableArea.style.top = `${area[1]}px`;
       clickableArea.style.width = `${area[2] - area[0]}px`;
       clickableArea.style.height = `${area[3] - area[1]}px`;
-      
+
       posterContainer.appendChild(clickableArea);
     }
 
     // Handle poster click
     function handlePosterClick(e) {
       if (!gameState.gameActive || gameState.errorFound) return;
-      
+
       const area = gameState.clickableAreas[gameState.currentPoster];
       if (!area) return;
-      
+
       const rect = posterContainer.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      
+
       // Check if click is within clickable area
       if (x >= area[0] && x <= area[2] && y >= area[1] && y <= area[3]) {
         handleCorrectClick();
@@ -711,27 +912,27 @@
     function handleCorrectClick() {
       gameState.errorFound = true;
       gameState.postersCompleted++;
-      
+
       // Calculate score
       let points = 200;
       if (gameState.fastMode) points *= 1.5;
       const timeBonus = Math.floor(gameState.timeLeft / 10) * 15;
       points += timeBonus;
       gameState.score += points;
-      
+
       // Show error reveal
       const errorInfo = gameState.errorDescriptions[gameState.currentPoster];
       errorTitle.textContent = errorInfo.title;
       errorType.textContent = errorInfo.type;
       errorDescription.textContent = errorInfo.description;
       errorReveal.style.display = 'flex';
-      
+
       // Enable next button
       nextBtn.disabled = false;
-      
+
       // Update UI
       updateUI();
-      
+
       // Check if game is complete
       if (gameState.postersCompleted === gameState.totalPosters) {
         setTimeout(() => endGame(true), 500);
@@ -745,7 +946,7 @@
       setTimeout(() => {
         posterContainer.classList.remove('click-feedback');
       }, 200);
-      
+
       // Penalty
       gameState.score = Math.max(0, gameState.score - 25);
       updateUI();
@@ -759,12 +960,12 @@
     // Give hint
     function giveHint() {
       if (gameState.hintsLeft <= 0 || gameState.errorFound) return;
-      
+
       // Show hint pill
       hintTextEl.innerHTML = gameState.hints[gameState.currentPoster];
       hintPill.style.opacity = 1;
       hintPill.classList.add('glow-pill');
-      
+
       // Highlight clickable area
       const clickableArea = document.querySelector('.clickable-area');
       if (clickableArea) {
@@ -773,17 +974,17 @@
           clickableArea.classList.remove('highlight-active');
         }, 3000);
       }
-      
+
       // Deduct hint and score
       gameState.hintsLeft--;
       gameState.score = Math.max(0, gameState.score - 50);
-      
+
       // Auto hide hint after 5 seconds
       setTimeout(() => {
         hintPill.style.opacity = 0;
         hintPill.classList.remove('glow-pill');
       }, 5000);
-      
+
       updateUI();
     }
 
@@ -791,22 +992,22 @@
     function switchMode(isFast) {
       gameState.fastMode = isFast;
       gameState.timeLeft = isFast ? 60 : 120;
-      
+
       // Update button styles
       if (isFast) {
-        modeNormalBtn.className = 'px-4 py-2 rounded-full text-sm bg-transparent border border-white/10 text-slate-300 flex-1';
-        modeFastBtn.className = 'px-4 py-2 rounded-full text-sm bg-gradient-to-r from-[#6ee7b7] to-[#60a5fa] text-black font-medium flex-1';
+        modeNormalBtn.className = 'px-4 py-2 rounded-full text-sm bg-transparent border border-gray-300 text-gray-700 flex-1 hover:bg-gray-50 transition-colors';
+        modeFastBtn.className = 'px-4 py-2 rounded-full text-sm bg-gradient-to-r from-[#ec268f] to-[#f65566] text-white font-medium flex-1 hover:opacity-90 transition-opacity';
         gameModeEl.textContent = 'Mode Cepat';
-        timerEl.classList.add('text-red-400');
-        timerEl.classList.remove('text-emerald-400');
+        timerEl.classList.add('text-[#f76a53]');
+        timerEl.classList.remove('text-[#ec268f]');
       } else {
-        modeNormalBtn.className = 'px-4 py-2 rounded-full text-sm bg-gradient-to-r from-[#6ee7b7] to-[#60a5fa] text-black font-medium flex-1';
-        modeFastBtn.className = 'px-4 py-2 rounded-full text-sm bg-transparent border border-white/10 text-slate-300 flex-1';
+        modeNormalBtn.className = 'px-4 py-2 rounded-full text-sm bg-gradient-to-r from-[#ec268f] to-[#f65566] text-white font-medium flex-1 hover:opacity-90 transition-opacity';
+        modeFastBtn.className = 'px-4 py-2 rounded-full text-sm bg-transparent border border-gray-300 text-gray-700 flex-1 hover:bg-gray-50 transition-colors';
         gameModeEl.textContent = 'Mode Normal';
-        timerEl.classList.remove('text-red-400');
-        timerEl.classList.add('text-emerald-400');
+        timerEl.classList.remove('text-[#f76a53]');
+        timerEl.classList.add('text-[#ec268f]');
       }
-      
+
       startTimer();
       updateUI();
     }
@@ -847,19 +1048,19 @@
     let timerInterval;
     function startTimer() {
       clearInterval(timerInterval);
-      
+
       timerInterval = setInterval(() => {
         if (!gameState.gameActive || gameState.errorFound) return;
-        
+
         gameState.timeLeft--;
-        
+
         if (gameState.timeLeft <= 0) {
           gameState.timeLeft = 0;
           gameState.gameActive = false;
           clearInterval(timerInterval);
           endGame(false);
         }
-        
+
         updateTimerDisplay();
       }, 1000);
     }
@@ -879,31 +1080,36 @@
       scoreEl.textContent = gameState.score;
       hintsLeftEl.textContent = gameState.hintsLeft;
       hintCountEl.textContent = gameState.hintsLeft;
-      
+
       updateTimerDisplay();
-      
+
       // Update button states
       hintBtn.disabled = gameState.hintsLeft <= 0 || gameState.errorFound;
       nextBtn.disabled = !gameState.errorFound || gameState.currentPoster === gameState.totalPosters;
+
+      // Update hint button text
+      if (gameState.hintsLeft <= 0) {
+        hintBtn.innerHTML = `<i class="fas fa-lightbulb"></i> Hint (0)`;
+      }
     }
 
     // End game
     function endGame(isWin) {
       gameState.gameActive = false;
       clearInterval(timerInterval);
-      
+
       if (isWin) {
         // Calculate final score
         const timeBonus = Math.floor(gameState.timeLeft / 5) * 20;
         gameState.score += timeBonus + 1000; // Completion bonus
-        
+
         finalScoreEl.textContent = gameState.score;
         finalTimeEl.textContent = timerEl.textContent;
-        
+
         // Calculate accuracy
         const accuracy = Math.min(100, Math.round((gameState.postersCompleted / gameState.totalPosters) * 100));
         finalAccuracyEl.textContent = `${accuracy}%`;
-        
+
         gameCompleteEl.style.display = 'flex';
       } else {
         alert('Waktu habis! Coba lagi untuk menemukan semua kesalahan.');
@@ -920,7 +1126,7 @@
       gameState.gameActive = true;
       gameState.errorFound = false;
       gameState.timeLeft = gameState.fastMode ? 60 : 120;
-      
+
       gameCompleteEl.style.display = 'none';
       closeReveal();
       showPoster(1);
@@ -932,4 +1138,5 @@
     document.addEventListener('DOMContentLoaded', initGame);
   </script>
 </body>
+
 </html>
